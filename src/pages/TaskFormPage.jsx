@@ -34,7 +34,7 @@ export default function TaskFormPage() {
     LoadTask();
   }, [params.id]);
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+    <div className=" bg-gradient-to-br from-[#000000] via-[#0d0d0d] to-[#1a1a1f]  min-h-screen flex items-center justify-center">
       <form
         onSubmit={onSubmit}
         className="bg-white p-8 rounded-lg shadow-md w-full max-w-md flex flex-col gap-4"

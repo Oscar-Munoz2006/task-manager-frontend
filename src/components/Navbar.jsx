@@ -11,9 +11,12 @@ export default function Navbar() {
 
   return (
     <nav className="bg-gradient-to-r from-[#000000] via-[#0d0d0d] to-[#1a1a1f] text-white px-6 py-4 flex justify-between items-center shadow-lg shadow-black/50 border-b border-white/5">
+      <Link
+      to="/">
       <div className="font-bold text-xl bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
         Task Manager
       </div>
+      </Link>
 
       <div className="flex gap-6">
         {/* Si el usuario está autenticado */}
