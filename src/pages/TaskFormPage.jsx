@@ -1,9 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { createTask, deleteTask, updateTask, getTask } from "../api/tasks.api";
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function TaskFormPage() {
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -34,7 +36,7 @@ export default function TaskFormPage() {
     LoadTask();
   }, [params.id]);
   return (
-    <div className=" bg-gradient-to-br from-[#000000] via-[#0d0d0d] to-[#1a1a1f]  min-h-screen flex items-center justify-center">
+    <div className=" relative bg-gradient-to-br from-[#000000] via-[#0d0d0d] to-[#1a1a1f]  min-h-screen flex items-center justify-center">
       <form
         onSubmit={onSubmit}
         className="bg-white p-8 rounded-lg shadow-md w-full max-w-md flex flex-col gap-4"
@@ -89,22 +91,47 @@ export default function TaskFormPage() {
         >
           Guardar
         </button>
-        {params.id && (
-          <button
-            type="button"
-            onClick={async () => {
-              const accepted = window.confirm("¿Estás seguro?");
-              if (accepted) {
-                await deleteTask(params.id);
-                navigate("/tasks");
-              }
-            }}
-            className="bg-red-500 text-white py-2 rounded hover:bg-red-600 transition-colors font-semibold mt-2"
-          >
-            Eliminar
-          </button>
+       {params.id && (
+  <button
+    type="button"
+    onClick={() => setShowConfirm(true)}
+    className="bg-red-500 text-white py-2 rounded hover:bg-red-600 transition-colors font-semibold mt-2"
+  >
+    Eliminar
+  </button>
+  
         )}
       </form>
+      {showConfirm && (
+  <div className="absolute z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+    <div className="bg-white border rounded-lg shadow-xl p-6 w-80">
+      <h3 className="text-lg font-bold mb-3">Confirmar eliminación</h3>
+      <p className="mb-4 text-sm text-gray-600">
+        ¿Estás seguro de eliminar esta tarea?
+      </p>
+
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => setShowConfirm(false)}
+          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={async () => {
+            await deleteTask(params.id);
+            navigate("/tasks");
+          }}
+          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+        >
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
