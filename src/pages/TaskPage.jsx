@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import { TaskCard } from "../components/TaskCard";
 import { getALLTasks } from "../api/tasks.api";
-import FilterBar from "../components/FilterBar/FilterBar";
+import { useFilters } from "../contexts/FilterContext";
 
 export default function TaskPage() {
   const [tasks, setTasks] = useState([]);
-  const [filterStatus, setFilterStatus] = useState("todas");
-  const [filterPriority, setFilterPriority] = useState("todas");
-  const [filterDate, setFilterDate] = useState("todas");
+  const { filterStatus, filterPriority, filterDate } = useFilters();
 
   useEffect(() => {
     async function loadTasks() {
@@ -43,18 +41,10 @@ export default function TaskPage() {
   });
 
   return (
-    <div className="p-6 bg-gray-900 min-h-screen text-white">
-      <h1 className="text-3xl font-bold mb-6 text-center">Lista de tareas</h1>
-      <FilterBar
-  filterStatus={filterStatus}
-  setFilterStatus={setFilterStatus}
-  filterPriority={filterPriority}
-  setFilterPriority={setFilterPriority}
-  filterDate={filterDate}
-  setFilterDate={setFilterDate}
-  filteredTasks={filteredTasks}
-/>
+   <div className="p-6 bg-gradient-to-br from-[#000000] via-[#0d0d0d] to-[#1a1a1f] text-white min-h-screen ml-64 mt-16 h-[calc(100vh-4rem)] overflow-y-auto">
 
+      <h1 className="text-3xl font-bold mb-6 text-center">Lista de tareas</h1>
+      
       {filteredTasks.length === 0 ? (
         <p className="text-center text-gray-400">
           No hay tareas que coincidan con los filtros

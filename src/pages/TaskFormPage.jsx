@@ -37,84 +37,104 @@ export default function TaskFormPage() {
     LoadTask();
   }, [params.id]);
   return (
-    <div className=" relative bg-gradient-to-br from-[#000000] via-[#0d0d0d] to-[#1a1a1f]  min-h-screen flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-40">
+
       <form
-        onSubmit={onSubmit}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-md flex flex-col gap-4"
+  onSubmit={onSubmit}
+  className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 flex flex-col gap-4"
+>
+  {/* Header */}
+  <div className="border-b pb-3">
+    <h2 className="text-xl font-semibold">
+      {params.id ? "Editar tarea" : "Nueva tarea"}
+    </h2>
+  </div>
+
+  {/* Título */}
+  <input
+    type="text"
+    placeholder="Título"
+    {...register("title", { required: true })}
+    className="text-lg font-medium outline-none border-b py-2 focus:border-black"
+  />
+  {errors.title && (
+    <span className="text-red-500 text-sm">Este campo es requerido</span>
+  )}
+
+  {/* Descripción */}
+  <textarea
+    rows="3"
+    placeholder="Descripción"
+    {...register("description", { required: true })}
+    className="resize-none outline-none border rounded-lg p-3"
+  />
+  {errors.description && (
+    <span className="text-red-500 text-sm">Este campo es requerido</span>
+  )}
+
+  {/* Opciones */}
+  <div className="flex flex-wrap gap-2">
+    <select {...register("priority")} className="border rounded-lg px-3 py-2">
+      <option value="baja">Baja</option>
+      <option value="media">Media</option>
+      <option value="alta">Alta</option>
+    </select>
+
+    <select {...register("status")} className="border rounded-lg px-3 py-2">
+      <option value="pendiente">Pendiente</option>
+      <option value="en_proceso">En Progreso</option>
+      <option value="completada">Completada</option>
+    </select>
+
+    <input
+      type="date"
+      {...register("deadline")}
+      className="border rounded-lg px-3 py-2"
+    />
+  </div>
+
+  {/* Footer */}
+  <div className="flex justify-between items-center pt-4 border-t">
+    {params.id && (
+      <button
+        type="button"
+        onClick={() => setShowConfirm(true)}
+        className="text-red-500 hover:underline"
       >
-        <h2 className="text-2xl font-bold text-center mb-4">
-          {params.id ? "Editar tarea" : "Crear tarea"}
-        </h2>
-        <input
-          type="text"
-          placeholder="Título"
-          {...register("title", { required: true })}
-          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-        {errors.title && (
-          <span className="text-red-500 text-sm">Este campo es requerido</span>
-        )}
-        <textarea
-          rows="3"
-          placeholder="Descripción"
-          {...register("description", { required: true })}
-          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        ></textarea>
-        {errors.description && (
-          <span className="text-red-500 text-sm">Este campo es requerido</span>
-        )}
-        <label className="font-semibold">Estado</label>
-        <select
-          {...register("status")}
-          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
-          <option value="pendiente">Pendiente</option>
-          <option value="en_proceso">En Progreso</option>
-          <option value="completada">Completada</option>
-        </select>
-        <label className="font-semibold">Prioridad</label>
-        <select
-          {...register("priority")}
-          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
-          <option value="baja">Baja</option>
-          <option value="media">Media</option>
-          <option value="alta">Alta</option>
-        </select>
-        <label className="font-semibold">Fecha límite</label>
-        <input
-          type="date"
-          {...register("deadline")}
-          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-        <button
-          className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition-colors font-semibold"
-        >
-          Guardar
-        </button>
-       {params.id && (
-  <button
-    type="button"
-    onClick={() => setShowConfirm(true)}
-    className="bg-red-500 text-white py-2 rounded hover:bg-red-600 transition-colors font-semibold mt-2"
-  >
-    Eliminar
-  </button>
-  
-        )}
-      </form>
-      {showConfirm && (
-  <div className="absolute z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-    <div className="bg-white border rounded-lg shadow-xl p-6 w-80">
-      <h3 className="text-lg font-bold mb-3">Confirmar eliminación</h3>
-      <p className="mb-4 text-sm text-gray-600">
-        ¿Estás seguro de eliminar esta tarea?
+        Eliminar
+      </button>
+    )}
+
+    <div className="flex gap-2">
+      <button
+        type="button"
+        onClick={() => navigate("/tasks")}
+        className="px-4 py-2 rounded-lg border"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="submit"
+        className="px-4 py-2 rounded-lg bg-black text-white"
+      >
+        Guardar
+      </button>
+    </div>
+  </div>
+</form>
+     {showConfirm && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl shadow-xl p-6 w-80">
+      <h3 className="text-lg font-semibold mb-2">Eliminar tarea</h3>
+      <p className="text-sm text-gray-600 mb-4">
+        ¿Seguro que deseas eliminar esta tarea?
       </p>
 
       <div className="flex justify-end gap-2">
         <button
           onClick={() => setShowConfirm(false)}
-          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+          className="px-4 py-2 border rounded-lg"
         >
           Cancelar
         </button>
@@ -124,7 +144,7 @@ export default function TaskFormPage() {
             await deleteTask(params.id);
             navigate("/tasks");
           }}
-          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          className="px-4 py-2 bg-red-500 text-white rounded-lg"
         >
           Eliminar
         </button>
