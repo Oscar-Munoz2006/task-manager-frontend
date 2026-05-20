@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 64">
+  <!-- fondo redondeado azul -->
+  <rect width="64" height="64" rx="14" fill="#2563eb"/>
+  <!-- check grueso blanco -->
+  <polyline points="14,34 26,46 50,20" fill="none" stroke="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- texto Task Manager -->
+  <text x="76" y="24" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#ffffff">Task</text>
+  <text x="76" y="46" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#60a5fa">Manager</text>
+</svg>
