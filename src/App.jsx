@@ -8,6 +8,7 @@ import Navbar from "./components/Navbar";
 import Home from "./components/Home";
 import { Toaster } from "react-hot-toast";
 import TaskCalendar from "./components/TaskCalendar";
+import AgendaPage from "./pages/AgendaPage";
 
 function App() {
   return (
@@ -53,6 +54,14 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route
+  path="/agenda"
+  element={
+    <PrivateRoute>
+      <AgendaPage />
+    </PrivateRoute>
+  }
+/>
         </Routes>
       </div>
     </BrowserRouter>

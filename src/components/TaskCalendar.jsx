@@ -4,6 +4,7 @@ import { format, parse, startOfWeek, getDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { getALLTasks } from "../api/tasks.api";
+import { X, Clock, CalendarDays, PlusCircle } from "lucide-react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const localizer = dateFnsLocalizer({
@@ -59,9 +60,9 @@ const calendarStyles = `
 `;
 
 export default function TaskCalendar() {
-  const [events, setEvents] = useState([]);
-  const [allTasks, setAllTasks] = useState([]); // guardamos todas las tareas para el modal
-  const [dayModal, setDayModal] = useState(null);
+  const [events, setEvents]       = useState([]);
+  const [allTasks, setAllTasks]   = useState([]);
+  const [dayModal, setDayModal]   = useState(null);
   const [taskModal, setTaskModal] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const navigate = useNavigate();
@@ -69,7 +70,7 @@ export default function TaskCalendar() {
   useEffect(() => {
     async function load() {
       const res = await getALLTasks();
-      setAllTasks(res.data); // guardar raw para usar en el modal
+      setAllTasks(res.data);
       const mapped = res.data
         .filter((t) => t.deadline)
         .map((t) => {
@@ -94,24 +95,17 @@ export default function TaskCalendar() {
     load();
   }, []);
 
-  // Obtiene TODAS las tareas de un día dado (no solo las que caben en el calendario)
   function getTasksForDay(date) {
-    return events.filter(
-      (e) => e.start.toDateString() === date.toDateString()
-    );
+    return events.filter((e) => e.start.toDateString() === date.toDateString());
   }
 
   const handleSelectSlot = ({ start }) => {
-    const tasksOnDay = getTasksForDay(start);
-    setDayModal({ date: start, tasks: tasksOnDay });
+    setDayModal({ date: start, tasks: getTasksForDay(start) });
   };
 
   const handleSelectEvent = (event) => setTaskModal(event);
 
-  // ✅ FIX: onShowMore — cuando el usuario hace click en "+N more"
-  // recibe el array de events de ese día y la fecha
   const handleShowMore = (eventsOnDay, date) => {
-    // eventsOnDay ya viene con TODOS los eventos del día desde react-big-calendar
     setDayModal({ date, tasks: eventsOnDay });
   };
 
@@ -126,6 +120,15 @@ export default function TaskCalendar() {
     return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
   }
 
+  const CloseBtn = ({ onClick }) => (
+    <button
+      onClick={onClick}
+      className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-700 transition-colors cursor-pointer"
+    >
+      <X size={16} />
+    </button>
+  );
+
   return (
     <section className="bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] min-h-screen text-white p-8">
       <style>{calendarStyles}</style>
@@ -134,13 +137,11 @@ export default function TaskCalendar() {
 
         {/* Header */}
         <div className="mb-6 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-lg shadow-lg shadow-blue-500/30">
-            📅
+          <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center shadow-lg shadow-blue-500/10">
+            <CalendarDays size={20} className="text-blue-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-100 leading-tight">
-              Calendario de tareas
-            </h1>
+            <h1 className="text-2xl font-bold text-slate-100 leading-tight">Calendario de tareas</h1>
             <p className="text-slate-400 text-sm">Visualiza y gestiona tus tareas por fecha</p>
           </div>
         </div>
@@ -151,7 +152,7 @@ export default function TaskCalendar() {
             {Object.entries(priorityColors).map(([key, color]) => (
               <span
                 key={key}
-                className="flex items-center gap-2 text-sm px-3 py-1 rounded-full border"
+                className="flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full border"
                 style={{
                   backgroundColor: color + "18",
                   borderColor: color + "40",
@@ -162,18 +163,17 @@ export default function TaskCalendar() {
                 {priorityLabels[key]}
               </span>
             ))}
-            <span className="flex items-center gap-2 text-sm px-3 py-1 rounded-full border border-slate-600/40 bg-slate-700/20 text-slate-500">
+            <span className="flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full border border-slate-600/40 bg-slate-700/20 text-slate-500">
               <span className="w-2 h-2 rounded-full bg-slate-500 opacity-50" />
               Completada
             </span>
           </div>
 
-          {/* Selector de mes y año */}
           <div className="flex gap-2">
             <select
               value={currentDate.getMonth()}
               onChange={(e) => setCurrentDate(new Date(currentDate.getFullYear(), Number(e.target.value), 1))}
-              className="bg-slate-800 border border-slate-600/50 text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm hover:border-slate-500 transition-colors"
+              className="bg-slate-800 border border-slate-600/50 text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm hover:border-slate-500 transition-colors cursor-pointer"
             >
               {months.map((m, i) => (
                 <option key={i} value={i}>{m}</option>
@@ -182,7 +182,7 @@ export default function TaskCalendar() {
             <select
               value={currentDate.getFullYear()}
               onChange={(e) => setCurrentDate(new Date(Number(e.target.value), currentDate.getMonth(), 1))}
-              className="bg-slate-800 border border-slate-600/50 text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm hover:border-slate-500 transition-colors"
+              className="bg-slate-800 border border-slate-600/50 text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm hover:border-slate-500 transition-colors cursor-pointer"
             >
               {years.map((y) => (
                 <option key={y} value={y}>{y}</option>
@@ -236,23 +236,13 @@ export default function TaskCalendar() {
                     backgroundColor: "rgba(255,255,255,0.7)", flexShrink: 0,
                   }} />
                   <span style={{
-                    color: "white",
-                    fontSize: "11px",
-                    fontWeight: "700",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    flex: 1,
+                    color: "white", fontSize: "11px", fontWeight: "700",
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1,
                   }}>
                     {event.title}
                   </span>
                   {!event.allDay && (
-                    <span style={{
-                      color: "rgba(255,255,255,0.75)",
-                      fontSize: "10px",
-                      flexShrink: 0,
-                      marginLeft: "2px",
-                    }}>
+                    <span style={{ color: "rgba(255,255,255,0.75)", fontSize: "10px", flexShrink: 0, marginLeft: "2px" }}>
                       {event.start.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}
                     </span>
                   )}
@@ -264,29 +254,23 @@ export default function TaskCalendar() {
             })}
             onSelectEvent={handleSelectEvent}
             onSelectSlot={handleSelectSlot}
-            onShowMore={handleShowMore} // ✅ conectado
+            onShowMore={handleShowMore}
           />
         </div>
       </div>
 
-      {/* Modal: click en día o en "+N más" */}
+      {/* Modal: día */}
       {dayModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-slate-800 border border-slate-600/40 rounded-2xl shadow-2xl p-6 w-full max-w-sm flex flex-col gap-4 max-h-[80vh] overflow-hidden">
+          <div className="bg-slate-800 border border-slate-700/40 rounded-2xl shadow-2xl p-6 w-full max-w-sm flex flex-col gap-4 max-h-[80vh] overflow-hidden">
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-base font-bold text-slate-100 capitalize">{formatDate(dayModal.date)}</h3>
-                <p className="text-sm text-slate-400 mt-0.5">{dayModal.tasks.length} tarea(s) este día</p>
+                <h3 className="text-sm font-bold text-slate-100 capitalize">{formatDate(dayModal.date)}</h3>
+                <p className="text-xs text-slate-500 mt-0.5">{dayModal.tasks.length} tarea(s) este día</p>
               </div>
-              <button
-                onClick={() => setDayModal(null)}
-                className="text-slate-500 hover:text-slate-200 text-xl font-bold transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-700"
-              >
-                ✕
-              </button>
+              <CloseBtn onClick={() => setDayModal(null)} />
             </div>
 
-            {/* Lista scrolleable de tareas */}
             {dayModal.tasks.length > 0 && (
               <div className="flex flex-col gap-2 overflow-y-auto pr-1">
                 {dayModal.tasks.map((t) => (
@@ -299,15 +283,12 @@ export default function TaskCalendar() {
                       border: `1px solid ${priorityColors[t.priority]}30`,
                     }}
                   >
-                    <span
-                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: priorityColors[t.priority] }}
-                    />
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: priorityColors[t.priority] }} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-slate-200 truncate">{t.title}</p>
                       {t.deadline_time && (
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          🕐 {formatTime(t.deadline_time)}
+                        <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                          <Clock size={10} /> {formatTime(t.deadline_time)}
                         </p>
                       )}
                     </div>
@@ -332,61 +313,63 @@ export default function TaskCalendar() {
                 setDayModal(null);
                 navigate("/tasks-create", { state: { date: formatted } });
               }}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 flex-shrink-0"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 flex-shrink-0 cursor-pointer"
             >
-              + Crear tarea para este día
+              <PlusCircle size={15} /> Crear tarea para este día
             </button>
           </div>
         </div>
       )}
 
-      {/* Modal: click en tarea */}
+      {/* Modal: tarea */}
       {taskModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-slate-800 border border-slate-600/40 rounded-2xl shadow-2xl p-6 w-full max-w-sm flex flex-col gap-4">
+          <div className="bg-slate-800 border border-slate-700/40 rounded-2xl shadow-2xl p-6 w-full max-w-sm flex flex-col gap-4">
             <div className="flex justify-between items-start">
               <h3 className="text-base font-bold text-slate-100 pr-4">{taskModal.title}</h3>
-              <button
-                onClick={() => setTaskModal(null)}
-                className="text-slate-500 hover:text-slate-200 text-xl font-bold transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-700"
-              >
-                ✕
-              </button>
+              <CloseBtn onClick={() => setTaskModal(null)} />
             </div>
 
             <div className="flex gap-2 flex-wrap">
               <span
-                className="text-xs px-3 py-1 rounded-full font-semibold"
+                className="text-xs px-3 py-1 rounded-full font-semibold flex items-center gap-1.5"
                 style={{
                   backgroundColor: priorityColors[taskModal.priority] + "25",
                   color: priorityColors[taskModal.priority],
                   border: `1px solid ${priorityColors[taskModal.priority]}40`,
                 }}
               >
-                ⚑ {priorityLabels[taskModal.priority]}
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: priorityColors[taskModal.priority] }} />
+                {priorityLabels[taskModal.priority]}
               </span>
               <span className="text-xs px-3 py-1 rounded-full font-medium bg-slate-700 text-slate-300 border border-slate-600/50">
                 {statusLabels[taskModal.status]}
               </span>
             </div>
 
-            <p className="text-sm text-slate-400">
-              📅 {formatDate(taskModal.start)}
+            <div className="flex flex-col gap-1.5">
+              <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                <CalendarDays size={13} className="text-slate-500" />
+                <span className="capitalize">{formatDate(taskModal.start)}</span>
+              </p>
               {taskModal.deadline_time && (
-                <span className="ml-2">🕐 {formatTime(taskModal.deadline_time)}</span>
+                <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                  <Clock size={13} className="text-slate-500" />
+                  {formatTime(taskModal.deadline_time)}
+                </p>
               )}
-            </p>
+            </div>
 
             <div className="flex gap-3">
               <button
                 onClick={() => { setTaskModal(null); navigate(`/tasks/${taskModal.id}`); }}
-                className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl font-semibold transition-colors shadow-lg shadow-blue-500/20"
+                className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-blue-500/20 cursor-pointer"
               >
                 Editar tarea
               </button>
               <button
                 onClick={() => setTaskModal(null)}
-                className="flex-1 border border-slate-600/50 text-slate-300 hover:bg-slate-700 py-2.5 rounded-xl font-semibold transition-colors"
+                className="flex-1 border border-slate-600/50 text-slate-300 hover:bg-slate-700 py-2.5 rounded-xl font-semibold text-sm transition-colors cursor-pointer"
               >
                 Cerrar
               </button>

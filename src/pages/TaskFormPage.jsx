@@ -4,6 +4,7 @@ import { createTask, deleteTask, updateTask, getTask } from "../api/tasks.api";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import { ConfirmModal } from "../components/ConfirmModal";
+import { X, Save, Trash2, PlusCircle } from "lucide-react";
 
 const TASK_SAVED_EVENT = "task:saved";
 
@@ -32,6 +33,7 @@ export default function TaskFormPage() {
     if (params.id) {
       setModal({
         message: "¿Guardar los cambios en esta tarea?",
+        variant: "success",
         onConfirm: async () => {
           setModal(null);
           try {
@@ -79,80 +81,90 @@ export default function TaskFormPage() {
     LoadTask();
   }, [params.id, preselectedDate]);
 
+  const inputClass =
+    "bg-slate-900/80 border border-slate-700/50 text-slate-200 placeholder-slate-500 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all";
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#0f172a]">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] p-4">
       {modal && (
         <ConfirmModal
           message={modal.message}
           onConfirm={modal.onConfirm}
           onCancel={() => setModal(null)}
+          variant={modal.variant}
         />
       )}
       <form
         onSubmit={onSubmit}
-        className="bg-[#1e293b] border border-white/10 p-8 rounded-2xl w-full max-w-md flex flex-col gap-5 shadow-2xl"
+        className="bg-slate-800/80 border border-slate-700/40 p-8 rounded-2xl w-full max-w-md flex flex-col gap-5 shadow-2xl shadow-black/40"
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-slate-100">
-              {params.id ? "Editar tarea" : "Nueva tarea"}
-            </h2>
-            <p className="text-slate-400 text-sm mt-0.5">
-              {params.id ? "Modifica los campos que necesites" : "Completa los campos para crear tu tarea"}
-            </p>
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+              params.id
+                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                : "bg-blue-500/10 border-blue-500/20 text-blue-400"
+            }`}>
+              {params.id ? <Save size={18} /> : <PlusCircle size={18} />}
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-100">
+                {params.id ? "Editar tarea" : "Nueva tarea"}
+              </h2>
+              <p className="text-slate-500 text-xs mt-0.5">
+                {params.id ? "Modifica los campos que necesites" : "Completa los campos para crear tu tarea"}
+              </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={() => navigate(preselectedDate ? "/calendar" : "/tasks")}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-700 transition-colors text-lg"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-700 transition-colors cursor-pointer"
           >
-            ✕
+            <X size={16} />
           </button>
         </div>
 
-        <div className="border-t border-white/10" />
+        <div className="border-t border-slate-700/40" />
 
+        {/* Título */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-slate-300">Título</label>
+          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Título</label>
           <input
             type="text"
             placeholder="Ej: Entregar informe"
             {...register("title", { required: "El título es requerido" })}
-            className="bg-[#0f172a] border border-white/10 text-slate-200 placeholder-slate-500 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className={inputClass}
           />
           {errors.title && <span className="text-red-400 text-xs">{errors.title.message}</span>}
         </div>
 
+        {/* Descripción */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-slate-300">Descripción</label>
+          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Descripción</label>
           <textarea
             rows="3"
             placeholder="Describe la tarea..."
             {...register("description", { required: "La descripción es requerida" })}
-            className="bg-[#0f172a] border border-white/10 text-slate-200 placeholder-slate-500 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+            className={`${inputClass} resize-none`}
           />
           {errors.description && <span className="text-red-400 text-xs">{errors.description.message}</span>}
         </div>
 
+        {/* Estado + Prioridad */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-slate-300">Estado</label>
-            <select
-              {...register("status")}
-              className="bg-[#0f172a] border border-white/10 text-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            >
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Estado</label>
+            <select {...register("status")} className={inputClass}>
               <option value="pendiente">Pendiente</option>
               <option value="en_proceso">En Progreso</option>
               <option value="completada">Completada</option>
             </select>
           </div>
-
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-slate-300">Prioridad</label>
-            <select
-              {...register("priority")}
-              className="bg-[#0f172a] border border-white/10 text-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            >
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Prioridad</label>
+            <select {...register("priority")} className={inputClass}>
               <option value="baja">Baja</option>
               <option value="media">Media</option>
               <option value="alta">Alta</option>
@@ -160,51 +172,54 @@ export default function TaskFormPage() {
           </div>
         </div>
 
+        {/* Fecha + Hora */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-slate-300">Fecha límite</label>
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Fecha límite</label>
             <input
               type="date"
               {...register("deadline")}
               style={{ colorScheme: "dark" }}
-              className="bg-[#0f172a] border border-white/10 text-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className={inputClass}
             />
           </div>
-
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-slate-300">
-              Hora <span className="text-slate-500 font-normal">(opcional)</span>
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Hora <span className="text-slate-600 normal-case font-normal">(opcional)</span>
             </label>
             <input
               type="time"
               {...register("deadline_time")}
               style={{ colorScheme: "dark" }}
-              className="bg-[#0f172a] border border-white/10 text-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className={inputClass}
             />
           </div>
         </div>
 
-        <div className="border-t border-white/10" />
+        <div className="border-t border-slate-700/40" />
 
+        {/* Botones */}
         <div className="flex flex-col gap-3">
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all ${
+            className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
               isSubmitting
-                ? "bg-blue-800 text-blue-300 cursor-not-allowed"
+                ? "bg-blue-900/50 text-blue-400 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20"
             }`}
           >
+            <Save size={15} />
             {isSubmitting ? "Guardando..." : "Guardar tarea"}
           </button>
 
           {params.id && (
             <button
               type="button"
-              onClick={() => {
+              onClick={() =>
                 setModal({
                   message: "¿Estás seguro de que quieres eliminar esta tarea?",
+                  variant: "danger",
                   onConfirm: async () => {
                     setModal(null);
                     try {
@@ -216,10 +231,11 @@ export default function TaskFormPage() {
                       toast.error("No se pudo eliminar la tarea");
                     }
                   },
-                });
-              }}
-              className="w-full py-2.5 rounded-xl font-semibold text-sm border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all"
+                })
+              }
+              className="w-full py-2.5 rounded-xl font-semibold text-sm border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
+              <Trash2 size={15} />
               Eliminar tarea
             </button>
           )}

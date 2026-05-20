@@ -2,6 +2,16 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { updateTask, deleteTask } from "../api/tasks.api";
 import toast from "react-hot-toast";
+import { 
+  MoreHorizontal, 
+  Pencil, 
+  Trash2, 
+  Calendar, 
+  Clock, 
+  AlertTriangle, 
+  Flag, 
+  Check 
+} from "lucide-react";
 
 const TASK_SAVED_EVENT = "task:saved";
 
@@ -10,15 +20,15 @@ function notifyTaskSaved() {
 }
 
 const statusStyles = {
-  pendiente:  { label: "Pendiente",   class: "bg-yellow-500/15 text-yellow-400 border border-yellow-500/30" },
-  en_proceso: { label: "En Progreso", class: "bg-blue-500/15 text-blue-400 border border-blue-500/30" },
-  completada: { label: "Completada",  class: "bg-green-500/15 text-green-400 border border-green-500/30" },
+  pendiente:  { label: "Pendiente",   class: "bg-amber-500/10 text-amber-400 border border-amber-500/20" },
+  en_proceso: { label: "En Progreso", class: "bg-blue-500/10 text-blue-400 border border-blue-500/20" },
+  completada: { label: "Completada",  class: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" },
 };
 
 const priorityStyles = {
-  baja:  { label: "Baja",  class: "bg-blue-500/15 text-blue-400 border border-blue-500/30" },
-  media: { label: "Media", class: "bg-amber-500/15 text-amber-400 border border-amber-500/30" },
-  alta:  { label: "Alta",  class: "bg-red-500/15 text-red-400 border border-red-500/30" },
+  baja:  { label: "Baja",  class: "bg-blue-500/10 text-blue-400 border border-blue-500/20" },
+  media: { label: "Media", class: "bg-amber-500/10 text-amber-400 border border-amber-500/20" },
+  alta:  { label: "Alta",  class: "bg-red-500/10 text-red-400 border border-red-500/20" },
 };
 
 const priorityBar = {
@@ -111,84 +121,89 @@ export function TaskCard({ task, onUpdate, onDelete }) {
   return (
     <div
       onClick={() => navigate(`/tasks/${currentTask.id}`)}
-      className={`relative bg-[#1e293b] border rounded-2xl p-5 flex flex-col gap-3 cursor-pointer transition-all overflow-hidden
-        ${isCompleted ? "border-white/5 opacity-70" : "border-white/10 hover:border-white/20 hover:bg-[#243047]"}`}
+      className={`relative bg-slate-800/40 border rounded-2xl p-5 flex flex-col gap-3.5 cursor-pointer transition-all overflow-hidden backdrop-blur-sm group
+        ${isCompleted ? "border-slate-800/40 opacity-60" : "border-slate-700/50 hover:border-slate-600/60 hover:bg-slate-700/40 shadow-sm"}`}
     >
-      <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl ${bar} ${isCompleted ? "opacity-20" : ""}`} />
+      {/* Indicador lateral de prioridad */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl ${bar} ${isCompleted ? "opacity-20" : "opacity-90"}`} />
 
-      <div className="pl-2 flex flex-col gap-3">
-
-        <div className="flex items-start justify-between gap-2">
-          <h3 className={`font-semibold text-base leading-snug flex-1 ${isCompleted ? "line-through text-slate-500" : "text-slate-100"}`}>
+      <div className="pl-1.5 flex flex-col gap-3 flex-1 justify-between">
+        
+        {/* Fila del Título y Menú */}
+        <div className="flex items-start justify-between gap-4">
+          <h3 className={`font-bold text-base leading-snug flex-1 tracking-tight group-hover:text-white transition-colors ${isCompleted ? "line-through text-slate-500" : "text-slate-100"}`}>
             {currentTask.title}
           </h3>
 
           <div ref={menuRef} className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/10 transition-colors text-lg leading-none"
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-700/60 transition-colors"
             >
-              ⋯
+              <MoreHorizontal size={16} />
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-8 z-50 w-48 bg-[#0f172a] border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden">
+              <div className="absolute right-0 top-8 z-50 w-48 bg-slate-900/90 backdrop-blur-md border border-slate-700/60 rounded-xl shadow-2xl shadow-black/40 overflow-hidden py-1">
                 <button
                   onClick={handleToggleComplete}
                   disabled={loading}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-colors text-left"
                 >
-                  <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isCompleted ? "bg-green-500 border-green-500" : "border-slate-500"}`}>
-                    {isCompleted && (
-                      <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
+                  <span className={`w-4 h-4 rounded-md border flex items-center justify-center flex-shrink-0 transition-colors ${isCompleted ? "bg-emerald-600 border-emerald-500 text-white" : "border-slate-500"}`}>
+                    {isCompleted && <Check size={10} strokeWidth={4} />}
                   </span>
                   {isCompleted ? "Marcar pendiente" : "Marcar completada"}
                 </button>
 
-                <div className="border-t border-white/5" />
+                <div className="border-t border-slate-800 my-1" />
 
                 <button
                   onClick={handleEdit}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-colors text-left"
                 >
-                  <span>✏️</span>
-                  Editar
+                  <Pencil size={13} className="text-slate-400" />
+                  Editar tarea
                 </button>
 
-                <div className="border-t border-white/5" />
+                <div className="border-t border-slate-800 my-1" />
 
                 <button
                   onClick={handleDelete}
                   disabled={loading}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors text-left"
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/10 transition-colors text-left"
                 >
-                  <span>🗑️</span>
-                  Eliminar
+                  <Trash2 size={13} className="text-red-400" />
+                  Eliminar tarea
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed">
-          {currentTask.description}
-        </p>
+        {/* Descripción */}
+        {currentTask.description && (
+          <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed">
+            {currentTask.description}
+          </p>
+        )}
 
-        <div className="flex flex-wrap gap-2">
-          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${status.class}`}>
+        {/* Badges de Estado y Prioridad */}
+        <div className="flex flex-wrap gap-1.5 mt-1">
+          <span className={`text-[11px] px-2.5 py-0.5 rounded-md font-bold tracking-wide uppercase ${status.class}`}>
             {status.label}
           </span>
-          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${priority.class}`}>
-            ⚑ {priority.label}
+          <span className={`text-[11px] px-2.5 py-0.5 rounded-md font-bold tracking-wide uppercase flex items-center gap-1 ${priority.class}`}>
+            <Flag size={10} strokeWidth={2.5} /> {priority.label}
           </span>
         </div>
 
+        {/* Tiempos y Fechas Límite */}
         {currentTask.deadline && (
-          <div className={`flex items-center gap-1.5 text-xs ${isOverdue ? "text-red-400 font-semibold" : "text-slate-500"}`}>
-            <span>{isOverdue ? "⚠" : "📅"}</span>
+          <div className={`flex items-center flex-wrap gap-1.5 text-[11px] mt-2 pt-2 border-t border-slate-800/60 ${isOverdue ? "text-red-400 font-semibold" : "text-slate-500"}`}>
+            <span className="flex items-center justify-center">
+              {isOverdue ? <AlertTriangle size={12} className="text-red-400" /> : <Calendar size={12} />}
+            </span>
             <span>
               {new Date(currentTask.deadline + "T00:00:00").toLocaleDateString("es-CO", {
                 year: "numeric", month: "short", day: "numeric",
@@ -196,11 +211,13 @@ export function TaskCard({ task, onUpdate, onDelete }) {
             </span>
             {formattedTime && (
               <>
-                <span className="text-slate-600">·</span>
-                <span>🕐 {formattedTime}</span>
+                <span className="text-slate-700 font-bold">·</span>
+                <span className="flex items-center gap-1">
+                  <Clock size={11} /> {formattedTime}
+                </span>
               </>
             )}
-            {isOverdue && <span className="ml-1">Vencida</span>}
+            {isOverdue && <span className="ml-auto font-bold uppercase tracking-wider text-[9px] bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded-md">Vencida</span>}
           </div>
         )}
 
