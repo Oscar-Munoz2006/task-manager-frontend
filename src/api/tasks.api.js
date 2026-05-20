@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const tasksApi = axios.create({
-  baseURL: "http://localhost:8000/api/v1/tasks/",
+  baseURL: "https://task-manager-backend-production-6faf.up.railway.app/api/v1/tasks/",
 });
 
 // interceptor de REQUEST — agrega el token en cada petición automáticamente

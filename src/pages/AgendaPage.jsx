@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getALLTasks } from "../api/tasks.api";
  
@@ -25,10 +25,10 @@ const HABIT_COLORS = [
   { value: "purple", bg: "bg-purple-500", ring: "ring-purple-500", text: "text-purple-400", light: "bg-purple-500/10 border-purple-500/20" },
 ];
  
-function todayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-}
+// Convierte cualquier objeto Date a string YYYY-MM-DD seguro sin problemas de zona horaria
+const formatDateString = (date) => {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
  
 function loadHabits() {
   try { return JSON.parse(localStorage.getItem(HABITS_KEY) || "[]"); }
@@ -53,8 +53,8 @@ function formatHour(date) {
   return date.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
 }
  
-function isHabitActiveToday(habit) {
-  const dow = new Date().getDay();
+function isHabitActiveToday(habit, date = new Date()) {
+  const dow = date.getDay();
   if (habit.repeat === "daily")    return true;
   if (habit.repeat === "weekdays") return dow >= 1 && dow <= 5;
   if (habit.repeat === "weekend")  return dow === 0 || dow === 6;
@@ -74,12 +74,6 @@ function getWeekDays() {
   });
 }
  
-function isSameDay(a, b) {
-  return a.getFullYear() === b.getFullYear() &&
-         a.getMonth()    === b.getMonth()    &&
-         a.getDate()     === b.getDate();
-}
- 
 export default function AgendaPage() {
   const navigate   = useNavigate();
   const [tasks,    setTasks]    = useState([]);
@@ -90,9 +84,9 @@ export default function AgendaPage() {
   const [editHabit,setEditHabit]= useState(null);
   const [now,      setNow]      = useState(new Date());
  
-  const today    = new Date();
-  const weekDays = getWeekDays();
-  const key      = todayKey();
+  const today      = new Date();
+  const weekDays   = useMemo(() => getWeekDays(), []);
+  const todayStr   = useMemo(() => formatDateString(today), [now.getDate()]); // Solo cambia si cambia el día real
  
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
@@ -102,17 +96,20 @@ export default function AgendaPage() {
   useEffect(() => {
     getALLTasks().then((res) => setTasks(res.data)).catch(() => {});
   }, []);
+
+  // Usamos useMemo para evitar re-filtrar tareas cada minuto con el tick del reloj
+  const todayTasks = useMemo(() => {
+    return tasks
+      .filter((t) => t.deadline && t.deadline === todayStr)
+      .sort((a, b) => (a.deadline_time || "23:59").localeCompare(b.deadline_time || "23:59"));
+  }, [tasks, todayStr]);
  
-  const todayTasks = tasks
-    .filter((t) => t.deadline && isSameDay(new Date(t.deadline + "T00:00:00"), today))
-    .sort((a, b) => (a.deadline_time || "23:59").localeCompare(b.deadline_time || "23:59"));
- 
-  const todayHabits  = habits.filter(isHabitActiveToday);
-  const checkedToday = checked[key] || {};
+  const todayHabits  = useMemo(() => habits.filter(h => isHabitActiveToday(h, today)), [habits, todayStr]);
+  const checkedToday = checked[todayStr] || {};
   const habitsDone   = todayHabits.filter((h) => checkedToday[h.id]).length;
  
   const toggleHabit = (id) => {
-    const next = { ...checked, [key]: { ...checkedToday, [id]: !checkedToday[id] } };
+    const next = { ...checked, [todayStr]: { ...checkedToday, [id]: !checkedToday[id] } };
     setChecked(next);
     saveChecked(next);
   };
@@ -133,9 +130,12 @@ export default function AgendaPage() {
     saveHabits(next);
   };
  
-  const tasksByDay = weekDays.map((day) =>
-    tasks.filter((t) => t.deadline && isSameDay(new Date(t.deadline + "T00:00:00"), day))
-  );
+  const tasksByDay = useMemo(() => {
+    return weekDays.map((day) => {
+      const dayStr = formatDateString(day);
+      return tasks.filter((t) => t.deadline && t.deadline === dayStr);
+    });
+  }, [tasks, weekDays]);
  
   const prioColor = { baja: "bg-blue-500", media: "bg-amber-500", alta: "bg-red-500" };
   const prioText  = { baja: "text-blue-400", media: "text-amber-400", alta: "text-red-400" };
@@ -174,7 +174,7 @@ export default function AgendaPage() {
           )}
           {tab === "day" && (
             <button
-              onClick={() => navigate("/tasks-create", { state: { date: todayKey() } })}
+              onClick={() => navigate("/tasks-create", { state: { date: todayStr } })}
               className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-4 py-2 rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95"
             >
               + Tarea
@@ -208,7 +208,7 @@ export default function AgendaPage() {
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: "Tareas hoy",  value: todayTasks.length,                                    color: "text-blue-400"   },
+                { label: "Tareas hoy",  value: todayTasks.length,                                       color: "text-blue-400"   },
                 { label: "Completadas", value: todayTasks.filter(t=>t.status==="completada").length,  color: "text-green-400"  },
                 { label: "Rutinas",     value: `${habitsDone}/${todayHabits.length}`,                color: "text-purple-400" },
               ].map((s) => (
@@ -229,7 +229,7 @@ export default function AgendaPage() {
                   <span className="text-3xl">✨</span>
                   <p className="text-slate-500 text-sm">Sin tareas para hoy</p>
                   <button
-                    onClick={() => navigate("/tasks-create", { state: { date: todayKey() } })}
+                    onClick={() => navigate("/tasks-create", { state: { date: todayStr } })}
                     className="mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
                   >
                     + Crear una tarea para hoy
@@ -354,7 +354,7 @@ export default function AgendaPage() {
               <div className="bg-slate-900/60 border border-white/5 rounded-2xl overflow-hidden divide-y divide-white/5">
                 {habits.map((h) => {
                   const color       = HABIT_COLORS.find((c) => c.value === h.color) || HABIT_COLORS[0];
-                  const activeToday = isHabitActiveToday(h);
+                  const activeToday = isHabitActiveToday(h, today);
                   const done        = !!checkedToday[h.id];
                   return (
                     <div key={h.id} className="flex items-center gap-4 px-5 py-4">
@@ -408,7 +408,8 @@ export default function AgendaPage() {
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-7 gap-1.5">
               {weekDays.map((day, i) => {
-                const isToday = isSameDay(day, today);
+                const dayStr = formatDateString(day);
+                const isToday = dayStr === todayStr;
                 const count   = tasksByDay[i].length;
                 return (
                   <div
@@ -437,7 +438,8 @@ export default function AgendaPage() {
  
             <div className="flex flex-col gap-3">
               {weekDays.map((day, i) => {
-                const isToday  = isSameDay(day, today);
+                const dayStr = formatDateString(day);
+                const isToday  = dayStr === todayStr;
                 const dayTasks = tasksByDay[i];
                 if (dayTasks.length === 0 && !isToday) return null;
                 return (
@@ -521,10 +523,10 @@ export default function AgendaPage() {
 }
  
 function HabitForm({ initial, onSave, onCancel }) {
-  const [name,    setName]    = useState(initial?.name    || "");
-  const [repeat,  setRepeat]  = useState(initial?.repeat  || "daily");
+  const [name, setName] = useState(initial?.name || "");
+  const [repeat, setRepeat] = useState(initial?.repeat || "daily");
   const [weekDay, setWeekDay] = useState(initial?.weekDay ?? 1);
-  const [color,   setColor]   = useState(initial?.color   || "blue");
+  const [color, setColor] = useState(initial?.color || "blue");
  
   const handleSave = () => {
     if (!name.trim()) return;
@@ -559,6 +561,7 @@ function HabitForm({ initial, onSave, onCancel }) {
             {REPEAT_OPTIONS.map((r) => (
               <button
                 key={r.value}
+                type="button"
                 onClick={() => setRepeat(r.value)}
                 className={`py-2 rounded-xl text-sm font-semibold border transition-all ${
                   repeat === r.value
@@ -579,6 +582,7 @@ function HabitForm({ initial, onSave, onCancel }) {
               {DAYS_ES.map((d, i) => (
                 <button
                   key={i}
+                  type="button"
                   onClick={() => setWeekDay(i)}
                   className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
                     weekDay === i
@@ -599,6 +603,7 @@ function HabitForm({ initial, onSave, onCancel }) {
             {HABIT_COLORS.map((c) => (
               <button
                 key={c.value}
+                type="button"
                 onClick={() => setColor(c.value)}
                 className={`w-7 h-7 rounded-full ${c.bg} transition-all ${
                   color === c.value
@@ -612,12 +617,14 @@ function HabitForm({ initial, onSave, onCancel }) {
  
         <div className="flex gap-3">
           <button
+            type="button"
             onClick={onCancel}
             className="flex-1 py-2.5 rounded-xl border border-white/10 text-slate-400 hover:text-slate-200 hover:bg-white/5 text-sm font-semibold transition-all"
           >
             Cancelar
           </button>
           <button
+            type="button"
             onClick={handleSave}
             disabled={!name.trim()}
             className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition-all shadow-lg shadow-blue-500/20"
