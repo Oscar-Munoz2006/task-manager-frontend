@@ -10,7 +10,7 @@ export default function Login() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!username || !password) {
@@ -19,14 +19,16 @@ export default function Login() {
     }
 
     try {
-      const data = await loginRequest(username, password);
+      const res = await fetch("https://task-manager-backend-production-6faf.up.railway.app/api/v1/login/", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
-      if (data.access) {
-        localStorage.setItem("token", data.access);
-        localStorage.setItem("refresh", data.refresh);
+      if (res.ok) {
         localStorage.setItem("isAuth", "true");
-        localStorage.setItem("username", username); // Guardamos para el saludo del Dashboard
-        
+        localStorage.setItem("username", username);
         toast.success(`¡Bienvenido, ${username}!`);
         navigate("/tasks");
       } else {
@@ -37,7 +39,6 @@ export default function Login() {
       console.log(err);
     }
   };
-
   return (
     <section className="bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-md">
